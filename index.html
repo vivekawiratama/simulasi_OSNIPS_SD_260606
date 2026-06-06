@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulasi OSN IPS – Bahni</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',sans-serif;background:#f0f4f8;min-height:100vh}
+
+/* HEADER */
+.header{background:linear-gradient(135deg,#1a56db,#0e9f6e);color:white;padding:18px 20px;text-align:center}
+.header h1{font-size:20px;font-weight:700}
+.header p{font-size:12px;opacity:.85;margin-top:3px}
+
+/* MENU */
+#menuScreen{padding:20px}
+.menu-title{font-size:16px;font-weight:700;color:#111827;margin-bottom:4px}
+.menu-sub{font-size:13px;color:#6b7280;margin-bottom:16px}
+.paket-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.paket-card{background:white;border-radius:12px;padding:16px;text-align:center;cursor:pointer;border:2px solid transparent;box-shadow:0 2px 8px rgba(0,0,0,.08);transition:all .2s}
+.paket-card:hover{border-color:#1a56db;transform:translateY(-2px)}
+.paket-card .icon{font-size:36px;margin-bottom:8px}
+.paket-card .ptitle{font-size:14px;font-weight:700;color:#1a56db}
+.paket-card .psub{font-size:11px;color:#6b7280;margin-top:4px}
+.paket-card .pinfo{font-size:12px;color:#0e9f6e;font-weight:600;margin-top:6px}
+.best-score{font-size:11px;color:#f59e0b;font-weight:600;margin-top:4px}
+
+/* RULES */
+#rulesScreen{display:none;padding:20px}
+.rules-card{background:white;border-radius:14px;padding:24px;box-shadow:0 2px 12px rgba(0,0,0,.1)}
+.rules-card h2{font-size:18px;font-weight:700;color:#111827;margin-bottom:16px}
+.rule-item{display:flex;gap:12px;align-items:flex-start;margin-bottom:12px;font-size:14px;color:#374151;line-height:1.5}
+.rule-icon{font-size:20px;min-width:28px}
+.rules-card .btn-start{width:100%;margin-top:20px;padding:14px;background:linear-gradient(135deg,#1a56db,#0e9f6e);color:white;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer}
+
+/* EXAM */
+#examScreen{display:none;padding:0}
+.exam-topbar{background:white;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 1px 6px rgba(0,0,0,.1);position:sticky;top:0;z-index:10}
+.exam-title{font-size:14px;font-weight:700;color:#111827}
+.countdown{font-size:15px;font-weight:700;padding:6px 14px;border-radius:8px;background:#fef3c7;color:#92400e}
+.countdown.warn{background:#fee2e2;color:#991b1b;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+.progress-wrap{height:4px;background:#e5e7eb}
+.progress-fill{height:100%;background:linear-gradient(90deg,#1a56db,#0e9f6e);transition:width .3s}
+
+.exam-body{padding:12px 16px}
+.q-nav{display:flex;flex-wrap:wrap;gap:6px;background:white;border-radius:10px;padding:12px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.q-nav-btn{width:32px;height:32px;border-radius:6px;border:1.5px solid #e5e7eb;background:white;font-size:12px;font-weight:600;color:#6b7280;cursor:pointer;transition:all .15s}
+.q-nav-btn.answered{background:#1a56db;color:white;border-color:#1a56db}
+.q-nav-btn.current{border-color:#f59e0b;color:#92400e}
+
+.q-card{background:white;border-radius:12px;padding:18px;box-shadow:0 1px 6px rgba(0,0,0,.08)}
+.q-num{font-size:11px;font-weight:700;color:#1a56db;text-transform:uppercase;letter-spacing:.5px}
+.q-text{font-size:15px;color:#111827;margin-top:8px;line-height:1.55;font-weight:500}
+.options{margin-top:14px;display:flex;flex-direction:column;gap:8px}
+.opt{padding:12px 14px;border:1.5px solid #e5e7eb;border-radius:10px;cursor:pointer;font-size:14px;color:#374151;transition:all .15s;display:flex;align-items:flex-start;gap:10px}
+.opt:hover{border-color:#1a56db;background:#eff6ff}
+.opt.selected{border-color:#1a56db;background:#eff6ff}
+.opt .ol{font-weight:700;color:#1a56db;min-width:20px}
+.opt.selected .ol{color:#1a56db}
+
+.exam-footer{padding:12px 16px;display:flex;gap:10px}
+.btn{padding:12px 20px;border-radius:10px;border:none;font-size:14px;font-weight:600;cursor:pointer;transition:all .15s}
+.btn-sec{background:#f3f4f6;color:#374151;flex:0 0 auto}
+.btn-sec:hover{background:#e5e7eb}
+.btn-pri{background:#1a56db;color:white;flex:1}
+.btn-pri:hover{background:#1e429f}
+.btn-submit{background:linear-gradient(135deg,#0e9f6e,#1a56db);color:white;flex:1;font-size:15px}
+
+.answered-count{font-size:13px;color:#6b7280;padding:8px 16px;text-align:center}
+.answered-count span{font-weight:700;color:#1a56db}
+
+/* RESULT */
+#resultScreen{display:none;padding:20px}
+.result-card{background:white;border-radius:16px;padding:28px 20px;text-align:center;box-shadow:0 4px 16px rgba(0,0,0,.1);margin-bottom:16px}
+.result-emoji{font-size:56px}
+.result-score{font-size:60px;font-weight:800;color:#1a56db;margin:8px 0 4px}
+.result-label{font-size:14px;color:#6b7280}
+.result-grade{font-size:20px;font-weight:700;display:inline-block;padding:8px 20px;border-radius:99px;margin:10px 0}
+.grade-a{background:#f0fdf4;color:#166534}
+.grade-b{background:#eff6ff;color:#1e429f}
+.grade-c{background:#fffbeb;color:#92400e}
+.grade-d{background:#fef2f2;color:#991b1b}
+.result-detail{font-size:13px;color:#374151;margin-top:6px}
+.stat-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:16px}
+.stat-box{background:#f9fafb;border-radius:8px;padding:10px;text-align:center}
+.stat-val{font-size:20px;font-weight:700;color:#111827}
+.stat-lbl{font-size:11px;color:#6b7280;margin-top:2px}
+.result-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+
+/* REVIEW */
+.review-section{margin-top:4px}
+.review-header{font-size:16px;font-weight:700;color:#111827;margin-bottom:12px}
+.review-item{background:white;border-radius:10px;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.review-item.right{border-left:3px solid #0e9f6e}
+.review-item.wrong{border-left:3px solid #ef4444}
+.review-item.skip{border-left:3px solid #d1d5db}
+.rbadge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px;display:inline-block;margin-bottom:6px}
+.rb-right{background:#f0fdf4;color:#166534}
+.rb-wrong{background:#fef2f2;color:#991b1b}
+.rb-skip{background:#f3f4f6;color:#6b7280}
+.rq{font-size:14px;font-weight:600;color:#111827;margin-bottom:6px;line-height:1.4}
+.ryou{font-size:13px;color:#991b1b;margin-bottom:3px}
+.rans{font-size:13px;color:#166534;margin-bottom:6px}
+.rexpl{font-size:13px;color:#374151;background:#f9fafb;padding:8px 10px;border-radius:6px;line-height:1.6}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🏆 Simulasi OSN IPS</h1>
+  <p>Bahni — SD Kelas 5 | Persiapan OSN IPS 2025</p>
+</div>
+
+<!-- MENU -->
+<div id="menuScreen">
+  <div style="margin-top:16px">
+    <p class="menu-title">Pilih Paket Simulasi</p>
+    <p class="menu-sub">Kerjakan seperti ujian sungguhan — jawab semua soal, baru submit!</p>
+    <div class="paket-grid" id="paketGrid"></div>
+  </div>
+</div>
+
+<!-- RULES -->
+<div id="rulesScreen">
+  <div class="rules-card">
+    <h2 id="rulesTitle">📋 Simulasi OSN IPS</h2>
+    <div class="rule-item"><span class="rule-icon">📝</span><span id="rulesInfo">30 soal pilihan ganda dari semua topik OSN IPS</span></div>
+    <div class="rule-item"><span class="rule-icon">⏱️</span><span id="rulesTime">Waktu: <strong>45 menit</strong></span></div>
+    <div class="rule-item"><span class="rule-icon">🔒</span><span>Jawaban <strong>tidak langsung terlihat</strong> — semua soal dikerjakan dulu, baru submit</span></div>
+    <div class="rule-item"><span class="rule-icon">📊</span><span>Setelah submit, kamu akan mendapat <strong>skor, nilai, dan pembahasan lengkap</strong></span></div>
+    <div class="rule-item"><span class="rule-icon">🎯</span><span>Kerjakan dengan serius dan <strong>tidak melihat buku/catatan</strong> ya!</span></div>
+    <div class="rule-item"><span class="rule-icon">💡</span><span>Kamu boleh <strong>kembali ke soal sebelumnya</strong> untuk mengubah jawaban sebelum submit</span></div>
+    <button class="btn-start" onclick="startExam()">🚀 Mulai Simulasi!</button>
+    <button class="btn" style="width:100%;margin-top:10px;background:#f3f4f6;color:#374151" onclick="backToMenu()">← Kembali</button>
+  </div>
+</div>
+
+<!-- EXAM -->
+<div id="examScreen">
+  <div class="exam-topbar">
+    <div class="exam-title" id="examTitle">Simulasi</div>
+    <div class="countdown" id="countdown">45:00</div>
+  </div>
+  <div class="progress-wrap"><div class="progress-fill" id="examProgress" style="width:0%"></div></div>
+  <div class="exam-body">
+    <div class="q-nav" id="qNav"></div>
+    <div class="q-card" id="qCard"></div>
+  </div>
+  <div class="answered-count" id="answeredCount"></div>
+  <div class="exam-footer">
+    <button class="btn btn-sec" id="btnPrev" onclick="prevQ()">← Prev</button>
+    <button class="btn btn-pri" id="btnNext" onclick="nextQ()">Next →</button>
+    <button class="btn btn-submit" id="btnSubmit" style="display:none" onclick="confirmSubmit()">✓ Submit</button>
+  </div>
+</div>
+
+<!-- RESULT -->
+<div id="resultScreen">
+  <div class="result-card">
+    <div class="result-emoji" id="rEmoji">🏆</div>
+    <div class="result-score" id="rScore">0%</div>
+    <div class="result-label" id="rLabel">0 dari 30 benar</div>
+    <div class="result-grade" id="rGrade">Bagus!</div>
+    <div class="result-detail" id="rDetail"></div>
+    <div class="stat-row">
+      <div class="stat-box"><div class="stat-val" id="rBenar" style="color:#0e9f6e">0</div><div class="stat-lbl">✓ Benar</div></div>
+      <div class="stat-box"><div class="stat-val" id="rSalah" style="color:#ef4444">0</div><div class="stat-lbl">✗ Salah</div></div>
+      <div class="stat-box"><div class="stat-val" id="rKosong" style="color:#9ca3af">0</div><div class="stat-lbl">− Kosong</div></div>
+    </div>
+    <div class="result-actions">
+      <button class="btn" style="background:#f3f4f6;color:#374151" onclick="toggleReview()">📋 Pembahasan</button>
+      <button class="btn btn-pri" onclick="backToMenu()">🏠 Menu</button>
+    </div>
+  </div>
+  <div class="review-section" id="reviewSection" style="display:none">
+    <p class="review-header">📋 Pembahasan Lengkap</p>
+    <div id="reviewItems"></div>
+  </div>
+</div>
+
+<script>
+const ALLQ = [
+  // GEOGRAFI
+  {t:"Geografi",q:"Pulau Sulawesi berada di sebelah timur Pulau Kalimantan dan sebelah barat Papua. Posisi geografis ini menunjukkan bahwa Indonesia ...",o:["Terletak di benua Australia","Terjepit dua benua dan dua samudra","Hanya memiliki satu zona waktu","Tidak memiliki laut dalam"],a:1,e:"Indonesia terletak di antara Benua Asia dan Australia, serta Samudra Hindia dan Pasifik. Posisi ini membuat Indonesia disebut berada di persimpangan dua benua dan dua samudra."},
+  {t:"Geografi",q:"Seseorang menemukan peta dengan garis bujur dan lintang yang lengkap. Untuk mengetahui waktu setempat, ia harus memperhatikan garis ...",o:["Lintang","Bujur","Kontur","Equator"],a:1,e:"Garis bujur (meridian) digunakan untuk menentukan zona waktu. Indonesia memiliki 3 zona waktu (WIB, WITA, WIT) berdasarkan garis bujur."},
+  {t:"Geografi",q:"Pulau Papua dikenal memiliki jenis burung Cendrawasih yang unik. Fenomena ini menunjukkan bahwa ...",o:["Sumber daya alam Papua lebih sedikit","Papua tidak cocok untuk pertanian","Setiap wilayah memiliki keanekaragaman hayati berbeda","Burung tersebut hanya bisa hidup di kebun binatang"],a:2,e:"Setiap wilayah di Indonesia memiliki flora dan fauna khas yang berbeda-beda. Cendrawasih adalah fauna endemik Papua yang tidak ditemukan di tempat lain."},
+  {t:"Geografi",q:"Di daerah pegunungan sering terjadi longsor saat musim hujan. Masyarakat setempat lebih cocok berprofesi sebagai ...",o:["Petani padi sawah","Penambang batu","Petani hortikultura dengan terasering","Nelayan tradisional"],a:2,e:"Di pegunungan, lahan berbukit tidak cocok untuk sawah. Terasering (sengkedan) digunakan untuk mencegah longsor sekaligus cocok untuk hortikultura (sayuran, buah)."},
+  {t:"Geografi",q:"Angin muson barat membawa hujan ke sebagian besar wilayah Indonesia. Kondisi ini paling memengaruhi kegiatan masyarakat dalam bidang ...",o:["Perdagangan internasional","Pembangunan jalan tol","Pertanian dan perikanan","Pendidikan dan kesehatan"],a:2,e:"Angin muson barat (Oktober–April) membawa musim hujan yang sangat berpengaruh pada pertanian (masa tanam) dan perikanan (cuaca laut)."},
+  {t:"Geografi",q:"Indonesia berada di antara dua benua dan dua samudra. Letak geografis ini membuat Indonesia ...",o:["Memiliki satu musim sepanjang tahun","Memiliki keragaman budaya dan flora-fauna yang sangat kaya","Tidak pernah mengalami bencana alam","Tidak memiliki sumber daya alam"],a:1,e:"Letak di antara dua benua dan dua samudra membuat Indonesia menjadi jalur lalu lintas dunia, mempertemukan berbagai budaya, dan memiliki keanekaragaman hayati yang tinggi."},
+  {t:"Geografi",q:"Jika sebuah daerah di Indonesia sering mengalami banjir saat musim hujan, gejala alam apa yang kemungkinan besar menyebabkan hal tersebut?",o:["Gunung meletus","Tsunami","Curah hujan tinggi dan sungai meluap","Angin kencang"],a:2,e:"Banjir saat musim hujan umumnya disebabkan oleh curah hujan yang tinggi melebihi kapasitas sungai dan tanah, sehingga air meluap ke permukiman."},
+  {t:"Geografi",q:"Seorang nelayan yang hidup di daerah pesisir akan sangat dipengaruhi oleh bentang alam wilayahnya, karena ...",o:["Bentang alam pesisir menyediakan ikan dan sumber daya laut","Bentang alam pegunungan membuat nelayan mudah menangkap ikan","Bentang alam dataran tinggi membuat nelayan lebih banyak menangkap ikan","Bentang alam gurun lebih cocok untuk nelayan"],a:0,e:"Nelayan tinggal di pesisir karena mudah mengakses laut. Bentang alam pesisir menyediakan berbagai hasil laut seperti ikan, udang, dan rumput laut."},
+  {t:"Geografi",q:"Keanekaragaman hayati di Indonesia sangat penting untuk menjaga keseimbangan ekosistem. Jika suatu jenis tumbuhan langka punah, yang terjadi adalah ...",o:["Semua hewan akan langsung mati","Ekosistem bisa terganggu karena rantai makanan tidak seimbang","Tumbuhan lain akan menggantikannya secara otomatis","Tidak berpengaruh apa-apa"],a:1,e:"Setiap makhluk hidup memiliki peran dalam rantai makanan. Jika satu spesies punah, hewan yang bergantung padanya akan kekurangan makanan, sehingga rantai makanan terganggu."},
+  {t:"Geografi",q:"Sumber daya alam yang dimanfaatkan secara berkelanjutan akan ...",o:["Habis dalam waktu cepat","Tetap tersedia untuk generasi sekarang dan yang akan datang","Tidak pernah habis meskipun digunakan terus-menerus tanpa aturan","Membuat lingkungan menjadi rusak"],a:1,e:"Pembangunan berkelanjutan artinya memanfaatkan sumber daya alam dengan bijak agar tetap tersedia untuk generasi mendatang."},
+  {t:"Geografi",q:"Sungai besar seperti Kapuas di Kalimantan digunakan masyarakat untuk ...",o:["Berkebun di pegunungan","Transportasi, sumber air, dan menangkap ikan","Menambang batu bara","Membangun perkantoran"],a:1,e:"Sungai-sungai besar di Kalimantan berfungsi sebagai jalur transportasi utama, sumber air bersih, dan tempat mencari ikan bagi masyarakat setempat."},
+  {t:"Geografi",q:"Indonesia dikenal memiliki banyak pelabuhan dan wilayah laut yang luas. Kondisi ini menunjukkan potensi besar dalam bidang ...",o:["Perdagangan darat","Industri tekstil","Ekonomi maritim","Teknologi luar angkasa"],a:2,e:"Dengan luas laut lebih dari 2/3 wilayahnya dan ribuan pulau, Indonesia sangat potensial dalam ekonomi maritim: perikanan, pariwisata bahari, dan jalur perdagangan laut."},
+  // SOSIAL BUDAYA
+  {t:"Sosial",q:"Di sebuah kampung, warga yang baru pindah akhirnya ikut dalam kegiatan ronda malam. Ini merupakan bentuk ...",o:["Konflik sosial","Asimilasi","Disintegrasi","Persaingan"],a:1,e:"Asimilasi adalah proses di mana seseorang menyesuaikan diri dengan budaya atau kebiasaan lingkungan barunya. Warga baru yang ikut ronda malam adalah contoh asimilasi sosial."},
+  {t:"Sosial",q:"Ketika siswa dari berbagai suku bekerja sama membuat pentas seni, hal ini menunjukkan bahwa keberagaman bisa ...",o:["Memicu konflik","Menimbulkan segregasi","Menghambat komunikasi","Mempererat persatuan"],a:3,e:"Kerja sama antarsuku membuktikan bahwa perbedaan suku dan budaya bukan halangan, justru bisa memperkuat persatuan dan saling menghargai."},
+  {t:"Sosial",q:"Di pasar tradisional, penjual menggunakan bahasa daerah masing-masing. Hal ini menunjukkan ...",o:["Kurangnya pendidikan formal","Rendahnya kesadaran kebangsaan","Wujud nyata dari keragaman budaya","Perlu diberlakukan satu bahasa wajib"],a:2,e:"Penggunaan bahasa daerah di kehidupan sehari-hari merupakan wujud nyata keragaman budaya Indonesia yang patut dijaga dan dilestarikan."},
+  {t:"Sosial",q:"Di sebuah desa ada aturan tidak tertulis bahwa anak-anak harus membantu orang tua setelah pulang sekolah. Aturan ini merupakan contoh ...",o:["Norma hukum","Nilai ekonomi","Norma sosial","Undang-undang adat"],a:2,e:"Norma sosial adalah aturan tidak tertulis yang berlaku dalam masyarakat berdasarkan kebiasaan dan kesepakatan bersama."},
+  {t:"Sosial",q:"Anak-anak lebih sering menggunakan gadget daripada bermain tradisional. Perubahan ini terjadi karena ...",o:["Gagalnya pendidikan keluarga","Pengaruh modernisasi dan globalisasi","Larangan pemerintah terhadap permainan tradisional","Berkurangnya waktu belajar"],a:1,e:"Globalisasi membawa teknologi digital yang mengubah cara anak bermain dan bersosialisasi. Ini adalah pengaruh modernisasi yang perlu disikapi dengan bijak."},
+  {t:"Sosial",q:"Nilai dan norma dalam masyarakat berguna untuk ...",o:["Membuat semua orang sama persis dalam segala hal","Memberi pedoman agar masyarakat dapat hidup rukun dan tertib","Menyebabkan pertengkaran antarwarga","Membatasi kreativitas seseorang"],a:1,e:"Nilai dan norma berfungsi sebagai pedoman perilaku agar masyarakat hidup tertib, saling menghormati, dan harmonis."},
+  {t:"Sosial",q:"Ketika seseorang membantu tetangganya yang sedang sakit tanpa diminta, hal tersebut menunjukkan ...",o:["Interaksi sosial yang positif dan empati","Sikap acuh tak acuh","Hanya mencari keuntungan pribadi","Tidak tahu norma sosial"],a:0,e:"Membantu tanpa diminta mencerminkan empati dan interaksi sosial yang positif — salah satu nilai luhur dalam budaya Indonesia."},
+  {t:"Sosial",q:"Proses sosial yang membuat budaya baru muncul dan dikenal masyarakat disebut ...",o:["Asimilasi","Inovasi sosial","Konflik sosial","Difusi budaya"],a:3,e:"Difusi budaya adalah penyebaran unsur budaya dari satu kelompok ke kelompok lain. Contoh: masuknya makanan asing ke Indonesia yang lama-lama dikenal masyarakat."},
+  {t:"Sosial",q:"Dalam sebuah komunitas seni, anggota baru diajarkan cara membuat batik oleh anggota lama. Proses ini disebut ...",o:["Akomodasi","Asimilasi","Sosialisasi","Diferensiasi"],a:2,e:"Sosialisasi adalah proses di mana seseorang belajar nilai, norma, dan keterampilan dari lingkungannya. Mengajarkan batik kepada anggota baru adalah bentuk sosialisasi budaya."},
+  {t:"Sosial",q:"Ketika masyarakat menjaga budaya tradisional sambil menerima teknologi modern, hal ini menunjukkan adanya ...",o:["Konflik budaya","Penolakan terhadap kemajuan","Akulturasi dan adaptasi","Monopoli sosial"],a:2,e:"Akulturasi adalah perpaduan dua budaya yang saling memengaruhi tanpa menghilangkan identitas asli. Menerima teknologi modern sambil menjaga tradisi adalah contoh akulturasi yang sehat."},
+  // EKONOMI
+  {t:"Ekonomi",q:"Indonesia menjual hasil tambang ke Jepang dan membeli mobil dari Jepang. Kegiatan ini menunjukkan bentuk ...",o:["Swasembada pangan","Ekspor-impor","Subsidi silang","Kolonialisme ekonomi"],a:1,e:"Ekspor adalah menjual barang ke negara lain, impor adalah membeli barang dari negara lain. Kegiatan Indonesia dengan Jepang tersebut adalah contoh ekspor-impor."},
+  {t:"Ekonomi",q:"Seorang petani menanam padi dan menjual hasil panennya ke pasar. Dalam sistem ekonomi, petani berperan sebagai ...",o:["Konsumen dan distributor","Produsen dan konsumen","Investor dan pengawas","Distributor dan investor"],a:1,e:"Petani yang menanam padi berperan sebagai produsen. Saat membeli kebutuhan sehari-hari, ia juga berperan sebagai konsumen."},
+  {t:"Ekonomi",q:"Uang lebih disukai daripada sistem barter karena ...",o:["Lebih mudah dibakar","Tidak dapat dipalsukan","Memiliki nilai tetap selamanya","Memudahkan transaksi dengan nilai pasti"],a:3,e:"Kelemahan barter adalah kesulitan menentukan nilai tukar. Uang memudahkan transaksi karena memiliki nilai yang sudah ditetapkan dan diterima semua pihak."},
+  {t:"Ekonomi",q:"Salah satu alasan pentingnya kegiatan ekspor bagi Indonesia adalah ...",o:["Mengurangi jumlah pekerja","Menurunkan produksi dalam negeri","Meningkatkan ketergantungan luar negeri","Mendapatkan devisa untuk negara"],a:3,e:"Ekspor menghasilkan devisa (mata uang asing) yang digunakan untuk membayar impor dan membiayai pembangunan nasional."},
+  {t:"Ekonomi",q:"Pembangunan ekonomi berkelanjutan menekankan pentingnya ...",o:["Mengutamakan keuntungan jangka pendek","Menguras sumber daya alam secepat mungkin","Menjaga keseimbangan antara ekonomi dan lingkungan","Menghindari inovasi dan teknologi"],a:2,e:"Pembangunan berkelanjutan berarti memenuhi kebutuhan saat ini tanpa mengorbankan kemampuan generasi mendatang untuk memenuhi kebutuhannya sendiri."},
+  {t:"Ekonomi",q:"Kelangkaan sumber daya mengharuskan masyarakat untuk ...",o:["Membuang barang yang rusak","Menghemat dan memilih penggunaan yang tepat","Membeli barang tanpa pertimbangan","Menghindari kegiatan produksi"],a:1,e:"Kelangkaan mendorong timbulnya pilihan ekonomi. Masyarakat harus bijak menggunakan sumber daya yang terbatas dan memprioritaskan kebutuhan yang paling penting."},
+  {t:"Ekonomi",q:"Suatu barang memiliki nilai guna tinggi jika ...",o:["Diproduksi oleh negara asing","Hanya dapat digunakan sekali","Memenuhi kebutuhan secara maksimal","Tidak laku di pasar"],a:2,e:"Nilai guna (utility) suatu barang ditentukan oleh kemampuannya memenuhi kebutuhan. Semakin bisa memenuhi kebutuhan, semakin tinggi nilai gunanya."},
+  // SEJARAH
+  {t:"Sejarah",q:"Kerajaan Hindu-Buddha seperti Sriwijaya dan Majapahit memiliki sistem pemerintahan yang teratur. Hal ini menunjukkan bahwa ...",o:["Budaya nenek moyang bersifat acak","Indonesia belum mengenal organisasi sosial","Sudah ada struktur kekuasaan yang rapi","Semua masyarakat hidup berpindah-pindah"],a:2,e:"Adanya kerajaan dengan raja, menteri, dan birokrasi menunjukkan bahwa masyarakat Indonesia sudah mengenal sistem pemerintahan yang terorganisir."},
+  {t:"Sejarah",q:"Penjajah Eropa datang ke Indonesia terutama karena tertarik pada ...",o:["Keindahan alamnya","Keanekaragaman budayanya","Kekayaan rempah-rempah","Teknologi maju di Indonesia"],a:2,e:"Rempah-rempah seperti lada, cengkih, dan pala sangat berharga di Eropa. Inilah yang mendorong bangsa Eropa berlomba mencari jalur ke Asia dan menjajah Indonesia."},
+  {t:"Sejarah",q:"Kemerdekaan Indonesia diproklamasikan pada tanggal 17 Agustus 1945, tetapi perjuangan belum selesai karena ...",o:["Negara lain segera mengakui kemerdekaan","Indonesia langsung menjadi negara maju","Masih ada ancaman militer dari pihak asing","Semua penjajah segera meninggalkan Indonesia"],a:2,e:"Setelah proklamasi, Belanda tidak mengakui kemerdekaan dan kembali ingin menjajah. Terjadi berbagai agresi militer dan perjuangan diplomasi hingga pengakuan kedaulatan pada 1949."},
+  {t:"Sejarah",q:"Tokoh nasional seperti Ki Hajar Dewantara dikenal karena jasanya dalam ...",o:["Pendidikan dan perjuangan kemerdekaan","Perdagangan dan ekonomi global","Pelayaran dan penjelajahan dunia","Perlawanan terhadap Islam"],a:0,e:"Ki Hajar Dewantara mendirikan Taman Siswa (1922) untuk memberikan pendidikan kepada rakyat pribumi. Semboyannya menjadi dasar pendidikan nasional Indonesia."},
+  {t:"Sejarah",q:"Peristiwa Sumpah Pemuda terjadi pada tahun ...",o:["1928","1945","1908","1942"],a:0,e:"Sumpah Pemuda 28 Oktober 1928: satu tanah air, satu bangsa, satu bahasa — Indonesia. Ini menjadi tonggak penting persatuan bangsa."},
+  {t:"Sejarah",q:"Tujuan utama pergerakan nasional Indonesia adalah ...",o:["Meningkatkan kesejahteraan penjajah","Mendapatkan kemerdekaan dari penjajah","Menyebarkan agama penjajah","Menjalin kerja sama dengan penjajah"],a:1,e:"Pergerakan nasional yang dimulai dengan berdirinya Budi Utomo (1908) bertujuan untuk meningkatkan kesadaran kebangsaan dan memperjuangkan kemerdekaan Indonesia."},
+  {t:"Sejarah",q:"Tokoh yang memproklamasikan kemerdekaan Indonesia adalah ...",o:["Soekarno dan Hatta","Soekarno dan Sjahrir","Hatta dan Sjahrir","Soekarno dan Tan Malaka"],a:0,e:"Proklamasi Kemerdekaan pada 17 Agustus 1945 dibacakan oleh Ir. Soekarno. Drs. Mohammad Hatta kemudian menjadi Wakil Presiden pertama RI."},
+  {t:"Sejarah",q:"Organisasi pergerakan nasional pertama di Indonesia adalah ...",o:["Sarekat Islam","Budi Utomo","PNI","Muhammadiyah"],a:1,e:"Budi Utomo didirikan tanggal 20 Mei 1908. Ini dianggap sebagai organisasi pergerakan nasional pertama, sehingga 20 Mei diperingati sebagai Hari Kebangkitan Nasional."},
+  {t:"Sejarah",q:"Masuknya Islam ke Indonesia membawa pengaruh besar dalam ...",o:["Bentuk senjata perang","Gaya hidup nomaden","Pendidikan dan sistem pemerintahan","Perkembangan kerajaan Hindu"],a:2,e:"Islam membawa tradisi baru dalam pendidikan (pesantren), sistem pemerintahan (kesultanan), arsitektur (masjid), dan berbagai aspek kehidupan masyarakat."},
+  {t:"Sejarah",q:"Perlawanan rakyat Aceh terhadap penjajah Belanda dipimpin oleh ...",o:["Sultan Hasanuddin","Cut Nyak Dien","Pangeran Diponegoro","Tuanku Imam Bonjol"],a:1,e:"Cut Nyak Dien adalah pahlawan wanita dari Aceh yang memimpin perlawanan terhadap Belanda. Sultan Hasanuddin memimpin perlawanan di Makassar (Sulawesi)."},
+  // METODE ILMIAH
+  {t:"Metode Ilmiah",q:"Seorang siswa ingin mengetahui penyebab banjir di desanya. Langkah awal yang seharusnya ia lakukan adalah ...",o:["Mencari kesimpulan sementara","Mengumpulkan data dari internet","Menyusun pertanyaan penelitian","Menyebarkan kuesioner ke warga"],a:2,e:"Dalam metode ilmiah, langkah pertama adalah merumuskan masalah atau pertanyaan penelitian. Sebelum mengumpulkan data, kita harus tahu dulu apa yang ingin diteliti."},
+  {t:"Metode Ilmiah",q:"Dalam mengamati perubahan musim, seorang peneliti membuat catatan harian suhu dan curah hujan selama 6 bulan. Kegiatan ini termasuk tahap ...",o:["Eksperimen","Observasi","Evaluasi","Hipotesis"],a:1,e:"Observasi adalah kegiatan pengamatan dan pencatatan data secara sistematis. Mencatat suhu dan curah hujan setiap hari selama berbulan-bulan adalah contoh observasi ilmiah."},
+  {t:"Metode Ilmiah",q:"Jika hasil pengamatan berbeda dengan hipotesis yang dibuat, langkah ilmiah yang harus dilakukan adalah ...",o:["Mengabaikan hasil pengamatan","Memperbaiki hipotesis atau mengulang pengamatan","Mengubah data supaya sesuai hipotesis","Menyerah dan menghentikan penelitian"],a:1,e:"Dalam metode ilmiah, data hasil pengamatan lebih dipercaya daripada hipotesis. Jika tidak sesuai, hipotesis harus direvisi atau pengamatan diulangi lebih teliti."},
+  {t:"Metode Ilmiah",q:"Jika seorang peneliti ingin membuktikan apakah jenis tanah mempengaruhi pertumbuhan tanaman, maka variabel yang harus diubah adalah ...",o:["Jenis pupuk","Jenis tanaman","Jenis tanah","Lama penyiraman"],a:2,e:"Variabel bebas adalah variabel yang sengaja diubah untuk dilihat pengaruhnya. Karena ingin menguji pengaruh jenis tanah, maka jenis tanahlah yang divariasikan."},
+  {t:"Metode Ilmiah",q:"Dalam penelitian ilmiah, data yang dikumpulkan harus ...",o:["Jujur, tepat, dan dapat dipertanggungjawabkan","Sesuai keinginan peneliti meskipun tidak benar","Diubah agar sesuai dengan teori yang ada","Tidak perlu dicatat dengan rapi"],a:0,e:"Data ilmiah harus jujur, akurat, dan dapat dipertanggungjawabkan agar kesimpulan yang dihasilkan valid dan dipercaya. Memanipulasi data adalah pelanggaran etika ilmiah."},
+  {t:"Metode Ilmiah",q:"Rino mencatat suhu udara di pagi, siang, dan malam selama satu minggu untuk melihat pola perubahan cuaca. Ia sedang melakukan ...",o:["Eksperimen","Penelitian sosial","Observasi ilmiah","Simulasi"],a:2,e:"Mencatat perubahan suhu secara berkala dan sistematis untuk mencari pola adalah kegiatan observasi ilmiah. Berbeda dengan eksperimen yang mengubah variabel untuk melihat pengaruhnya."},
+  {t:"Metode Ilmiah",q:"Salah satu tujuan penting dari metode ilmiah adalah ...",o:["Menghindari kerja kelompok","Menebak hasil secara acak","Menjelaskan gejala secara logis dan sistematis","Mengulang peristiwa sosial"],a:2,e:"Metode ilmiah bertujuan untuk menghasilkan pengetahuan yang dapat dipercaya, logis, sistematis, dan dapat diuji kebenarannya oleh orang lain."},
+  {t:"Metode Ilmiah",q:"Dalam melakukan penelitian tentang kebiasaan masyarakat menggunakan air bersih, cara pengumpulan data yang paling tepat adalah ...",o:["Membaca buku tentang air bersih saja","Melakukan wawancara langsung dengan warga setempat","Membuat kesimpulan tanpa data","Menebak perilaku warga tanpa bertanya"],a:1,e:"Untuk penelitian sosial tentang kebiasaan masyarakat, cara paling tepat adalah wawancara langsung atau survei lapangan untuk mendapatkan data primer yang akurat."},
+];
+
+// PAKET CONFIG
+const PAKETS = [
+  {name:"Simulasi A",icon:"🅰️",soal:25,waktu:40,sub:"Geografi, Sosial, Ekonomi"},
+  {name:"Simulasi B",icon:"🅱️",soal:25,waktu:40,sub:"Sejarah, Sosial, Metode Ilmiah"},
+  {name:"Simulasi C",icon:"©️",soal:30,waktu:50,sub:"Semua topik — seperti OSN asli"},
+  {name:"Simulasi D",icon:"🔥",soal:30,waktu:45,sub:"Acak penuh, soal berbeda tiap kali"},
+  {name:"Mini Test 1",icon:"⚡",soal:15,waktu:20,sub:"Geografi & Metode Ilmiah"},
+  {name:"Mini Test 2",icon:"💡",soal:15,waktu:20,sub:"Sosial, Budaya & Sejarah"},
+];
+
+// Filter by topic
+function getByTopic(topics, n) {
+  let pool = ALLQ.filter(q => topics.includes(q.t));
+  return shuffle(pool).slice(0, n);
+}
+function shuffle(arr) { return [...arr].sort(()=>Math.random()-.5); }
+
+function buildPaket(idx) {
+  const p = PAKETS[idx];
+  if(idx===0) return getByTopic(["Geografi","Sosial","Ekonomi"], p.soal);
+  if(idx===1) return getByTopic(["Sejarah","Sosial","Metode Ilmiah"], p.soal);
+  if(idx===2) return shuffle(ALLQ).slice(0, p.soal);
+  if(idx===3) return shuffle(ALLQ).slice(0, p.soal);
+  if(idx===4) return getByTopic(["Geografi","Metode Ilmiah"], p.soal);
+  if(idx===5) return getByTopic(["Sosial","Sejarah"], p.soal);
+  return shuffle(ALLQ).slice(0, p.soal);
+}
+
+// State
+let curPaket = 0, curQ = 0, answers = [], questions = [];
+let timerInterval = null, timeLeft = 0;
+let bestScores = JSON.parse(localStorage.getItem('osnBestScores')||'{}');
+
+// Render menu
+function renderMenu() {
+  const g = document.getElementById('paketGrid');
+  g.innerHTML = PAKETS.map((p,i) => {
+    const best = bestScores[i];
+    const bestHTML = best !== undefined ? `<div class="best-score">⭐ Best: ${best}%</div>` : '';
+    return `<div class="paket-card" onclick="selectPaket(${i})">
+      <div class="icon">${p.icon}</div>
+      <div class="ptitle">${p.name}</div>
+      <div class="psub">${p.sub}</div>
+      <div class="pinfo">${p.soal} soal · ${p.waktu} menit</div>
+      ${bestHTML}
+    </div>`;
+  }).join('');
+}
+
+function selectPaket(idx) {
+  curPaket = idx;
+  const p = PAKETS[idx];
+  document.getElementById('rulesTitle').textContent = `📋 ${p.name}`;
+  document.getElementById('rulesInfo').textContent = `${p.soal} soal pilihan ganda — ${p.sub}`;
+  document.getElementById('rulesTime').innerHTML = `Waktu: <strong>${p.waktu} menit</strong>`;
+  show('rulesScreen');
+}
+
+function startExam() {
+  const p = PAKETS[curPaket];
+  questions = buildPaket(curPaket);
+  answers = new Array(questions.length).fill(null);
+  curQ = 0;
+  timeLeft = p.waktu * 60;
+  document.getElementById('examTitle').textContent = p.name;
+  show('examScreen');
+  renderQNav();
+  renderQ();
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  updateCountdown();
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateCountdown();
+    if(timeLeft <= 0) { clearInterval(timerInterval); autoSubmit(); }
+  }, 1000);
+}
+
+function updateCountdown() {
+  const m = Math.floor(timeLeft/60).toString().padStart(2,'0');
+  const s = (timeLeft%60).toString().padStart(2,'0');
+  const el = document.getElementById('countdown');
+  el.textContent = `⏱ ${m}:${s}`;
+  el.className = 'countdown' + (timeLeft <= 120 ? ' warn' : '');
+}
+
+function renderQNav() {
+  const nav = document.getElementById('qNav');
+  nav.innerHTML = questions.map((_,i) => {
+    let cls = 'q-nav-btn';
+    if(answers[i] !== null) cls += ' answered';
+    if(i === curQ) cls += ' current';
+    return `<button class="${cls}" onclick="jumpTo(${i})">${i+1}</button>`;
+  }).join('');
+}
+
+function renderQ() {
+  const q = questions[curQ];
+  const total = questions.length;
+  const opts = ['A','B','C','D'];
+  document.getElementById('examProgress').style.width = ((curQ+1)/total*100)+'%';
+
+  const answeredCount = answers.filter(a=>a!==null).length;
+  document.getElementById('answeredCount').innerHTML = `Terjawab: <span>${answeredCount}</span> dari ${total} soal`;
+
+  // prev/next/submit
+  document.getElementById('btnPrev').disabled = curQ === 0;
+  const isLast = curQ === total - 1;
+  document.getElementById('btnNext').style.display = isLast ? 'none' : '';
+  document.getElementById('btnSubmit').style.display = isLast ? '' : 'none';
+
+  const optHTML = q.o.map((o,i) => {
+    const sel = answers[curQ] === i ? ' selected' : '';
+    return `<div class="opt${sel}" onclick="selectAns(${i})"><span class="ol">${opts[i]}.</span><span>${o}</span></div>`;
+  }).join('');
+
+  document.getElementById('qCard').innerHTML = `
+    <div class="q-num">Soal ${curQ+1} / ${total} &nbsp;·&nbsp; <span style="color:#6b7280">${q.t}</span></div>
+    <div class="q-text">${q.q}</div>
+    <div class="options">${optHTML}</div>`;
+
+  renderQNav();
+}
+
+function selectAns(i) {
+  answers[curQ] = i;
+  renderQ();
+}
+function jumpTo(i) { curQ = i; renderQ(); }
+function prevQ() { if(curQ>0){curQ--;renderQ();} }
+function nextQ() { if(curQ<questions.length-1){curQ++;renderQ();} }
+
+function confirmSubmit() {
+  const unanswered = answers.filter(a=>a===null).length;
+  if(unanswered > 0) {
+    if(!confirm(`Masih ada ${unanswered} soal yang belum dijawab. Yakin mau submit sekarang?`)) return;
+  }
+  submitExam();
+}
+
+function autoSubmit() {
+  alert('⏰ Waktu habis! Jawaban otomatis dikumpulkan.');
+  submitExam();
+}
+
+function submitExam() {
+  clearInterval(timerInterval);
+  let correct = 0, wrong = 0, skip = 0;
+  questions.forEach((q,i) => {
+    if(answers[i]===null) skip++;
+    else if(answers[i]===q.a) correct++;
+    else wrong++;
+  });
+  const total = questions.length;
+  const pct = Math.round(correct/total*100);
+
+  // Save best score
+  if(bestScores[curPaket]===undefined || pct > bestScores[curPaket]) {
+    bestScores[curPaket] = pct;
+    try { localStorage.setItem('osnBestScores', JSON.stringify(bestScores)); } catch(e){}
+  }
+
+  const opts = ['A','B','C','D'];
+  let emoji, grade, gradeCls, msg;
+  if(pct>=85){emoji='🏆';grade='Luar Biasa!';gradeCls='grade-a';msg='Kamu siap OSN! Pertahankan terus!';}
+  else if(pct>=70){emoji='🎉';grade='Bagus!';gradeCls='grade-b';msg='Hampir sempurna, sedikit lagi!';}
+  else if(pct>=55){emoji='😊';grade='Cukup Baik';gradeCls='grade-c';msg='Pelajari lagi soal yang salah ya!';}
+  else{emoji='💪';grade='Ayo Semangat!';gradeCls='grade-d';msg='Ulangi lagi, kamu pasti bisa!';}
+
+  document.getElementById('rEmoji').textContent = emoji;
+  document.getElementById('rScore').textContent = pct+'%';
+  document.getElementById('rLabel').textContent = `${correct} dari ${total} soal benar`;
+  document.getElementById('rGrade').className = 'result-grade '+gradeCls;
+  document.getElementById('rGrade').textContent = grade;
+  document.getElementById('rDetail').textContent = msg;
+  document.getElementById('rBenar').textContent = correct;
+  document.getElementById('rSalah').textContent = wrong;
+  document.getElementById('rKosong').textContent = skip;
+
+  // Build review
+  let html = '';
+  questions.forEach((q,i) => {
+    const isRight = answers[i]===q.a;
+    const isSkip = answers[i]===null;
+    const cls = isSkip?'skip':isRight?'right':'wrong';
+    const badge = isSkip?'rb-skip':isRight?'rb-right':'rb-wrong';
+    const label = isSkip?'− Tidak dijawab':isRight?'✓ Benar':'✗ Salah';
+    const youAns = answers[i]!==null ? `<div class="ryou">Jawabanmu: ${opts[answers[i]]}. ${q.o[answers[i]]}</div>` : '';
+    html += `<div class="review-item ${cls}">
+      <span class="rbadge ${badge}">Soal ${i+1} · ${label}</span>
+      <div class="rq">${q.q}</div>
+      ${!isRight ? youAns : ''}
+      <div class="rans">✓ Jawaban benar: ${opts[q.a]}. ${q.o[q.a]}</div>
+      <div class="rexpl">💡 ${q.e}</div>
+    </div>`;
+  });
+  document.getElementById('reviewItems').innerHTML = html;
+  document.getElementById('reviewSection').style.display = 'none';
+  show('resultScreen');
+}
+
+function toggleReview() {
+  const s = document.getElementById('reviewSection');
+  if(s.style.display==='none'){
+    s.style.display='block';
+    s.scrollIntoView({behavior:'smooth'});
+  } else {
+    s.style.display='none';
+  }
+}
+
+function backToMenu() {
+  clearInterval(timerInterval);
+  renderMenu();
+  show('menuScreen');
+}
+
+function show(id) {
+  ['menuScreen','rulesScreen','examScreen','resultScreen'].forEach(s=>{
+    document.getElementById(s).style.display = s===id ? 'block' : 'none';
+  });
+}
+
+// Init
+renderMenu();
+show('menuScreen');
+</script>
+</body>
+</html>
